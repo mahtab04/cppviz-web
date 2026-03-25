@@ -3,7 +3,8 @@ import Editor, { type OnMount } from "@monaco-editor/react";
 import type { CompilerError } from "../../../shared/types";
 import { registerCppLanguageFeatures } from "../config/cpp-language";
 import { registerAllThemes } from "../config/themes";
-import type { IDisposable } from "monaco-editor";
+import type { IDisposable, editor } from "monaco-editor";
+import type * as MonacoType from "monaco-editor";
 
 interface CodeEditorProps {
   value: string;
@@ -25,8 +26,8 @@ export default function CodeEditor({
   onRun,
   theme = "cppviz-night-owl",
 }: CodeEditorProps) {
-  const editorRef = useRef<any>(null);
-  const monacoRef = useRef<any>(null);
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const monacoRef = useRef<typeof MonacoType | null>(null);
   const langDisposablesRef = useRef<IDisposable[]>([]);
   const decorationsRef = useRef<string[]>([]);
 
@@ -102,7 +103,7 @@ export default function CodeEditor({
     // Inline hint decorations + line background highlight
     const newDecorations = errors.flatMap((err) => {
       const isErr = err.severity === "error";
-      const decs: any[] = [];
+      const decs: editor.IModelDeltaDecoration[] = [];
 
       // Background tint on the whole line
       decs.push({
