@@ -15,6 +15,7 @@ import type { AnalysisSettings, CompilerError, UnifiedResponse } from "../shared
 import { DEFAULT_CODE } from "../shared/types";
 import { useUrlState } from "../shared/hooks/useUrlState";
 import SplitPane from "../shared/ui/SplitPane";
+import KeyboardShortcutsModal from "../shared/ui/KeyboardShortcutsModal";
 
 type Tab = "layout" | "stack" | "pointers" | "compare";
 
@@ -229,7 +230,7 @@ export default function App() {
             Fully client-side memory layout visualizer
           </span>
         </div>
-        {/* Examples dropdown */}
+        <div className="flex items-center gap-2">
         <select
           className="bg-gray-750 text-gray-300 text-sm rounded-md px-3 py-1.5 border border-gray-650 hover:border-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors shadow-inner"
           value=""
@@ -246,7 +247,9 @@ export default function App() {
               {ex.name}
             </option>
           ))}
-        </select>
+          </select>
+          <KeyboardShortcutsModal />
+        </div>
       </header>
 
       {/* Toolbar */}
@@ -265,6 +268,19 @@ export default function App() {
 
       {/* Main Panes with SplitPane */}
       <SplitPane left={leftPane} right={rightPane} initialLeftWidthPercent={50} />
+
+      {/* Footer */}
+      <footer className="flex items-center justify-between px-4 py-1.5 bg-gray-800 border-t border-gray-700 text-[11px] text-gray-500 flex-shrink-0">
+        <span>CppViz v2.0 — Built with React + TypeScript</span>
+        <a
+          href="https://github.com/mahtab04/cppviz-web"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-gray-300 transition-colors"
+        >
+          GitHub ↗
+        </a>
+      </footer>
     </div>
   );
 }

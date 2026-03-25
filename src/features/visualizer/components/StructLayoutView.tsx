@@ -3,6 +3,7 @@ import type { LayoutResponse, StructLayout } from "../../../shared/types";
 import type { OptimizationResult } from "../../analyzer/engine/optimizer";
 import ByteGrid from "./ByteGrid";
 import LayoutStats from "./LayoutStats";
+import { useToast } from "../../../shared/ui/Toast";
 
 interface StructLayoutViewProps {
   data: LayoutResponse;
@@ -60,6 +61,7 @@ function StructCard({
   const [showOptCode, setShowOptCode] = useState(false);
   const [copied, setCopied] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const { toast } = useToast();
 
   /* ── Export handlers ── */
 
@@ -72,7 +74,8 @@ function StructCard({
     a.download = `${layout.name}-layout.json`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [layout]);
+    toast(`Exported ${layout.name} as JSON`);
+  }, [layout, toast]);
 
   const handleExportPNG = useCallback(async () => {
     if (!cardRef.current || exporting) return;
@@ -88,20 +91,23 @@ function StructCard({
       a.href = dataUrl;
       a.download = `${layout.name}-layout.png`;
       a.click();
+      toast(`Exported ${layout.name} as PNG`);
     } catch (err) {
       console.error("PNG export failed:", err);
+      toast("PNG export failed", "error");
     } finally {
       setExporting(false);
     }
-  }, [layout.name, exporting]);
+  }, [layout.name, exporting, toast]);
 
   const handleCopyCode = useCallback(() => {
     if (optimization?.optimizedCode) {
       navigator.clipboard.writeText(optimization.optimizedCode);
       setCopied(true);
+      toast("Optimized code copied to clipboard");
       setTimeout(() => setCopied(false), 2000);
     }
-  }, [optimization?.optimizedCode]);
+  }, [optimization?.optimizedCode, toast]);
 
   return (
     <div
