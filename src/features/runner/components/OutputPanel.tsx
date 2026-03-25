@@ -1,10 +1,14 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import type { RunResult } from "../services/godbolt";
 
 interface OutputPanelProps {
   result: RunResult | null;
   running: boolean;
   onClose: () => void;
+  stdin: string;
+  onStdinChange: (value: string) => void;
+  activeTab: "stdout" | "stderr" | "compile" | "stdin";
+  onTabChange: (tab: "stdout" | "stderr" | "compile" | "stdin") => void;
 }
 
 /** Classify a single compiler-output line. */
@@ -20,10 +24,11 @@ export default function OutputPanel({
   result,
   running,
   onClose,
+  stdin,
+  onStdinChange,
+  activeTab,
+  onTabChange,
 }: OutputPanelProps) {
-  const [activeTab, setActiveTab] = useState<"stdout" | "stderr" | "compile">(
-    "stdout"
-  );
   const scrollRef = useRef<HTMLPreElement>(null);
 
   useEffect(() => {
@@ -36,14 +41,12 @@ export default function OutputPanel({
   useEffect(() => {
     if (result) {
       if (result.didNotRun) {
-        setActiveTab("compile");
+        onTabChange("compile");
       } else if (!result.stdout && result.stderr) {
-        setActiveTab("stderr");
-      } else {
-        setActiveTab("stdout");
+        onTabChange("stderr");
       }
     }
-  }, [result]);
+  }, [result, onTabChange]);
 
   /** Count errors / warnings in compiler output for badge. */
   const diagnosticCounts = useMemo(() => {
@@ -61,6 +64,11 @@ export default function OutputPanel({
       label: "Compiler",
       hasContent: !!result?.compilationOutput,
     },
+    {
+      id: "stdin" as const,
+      label: "Input",
+      hasContent: stdin.length > 0,
+    },
   ];
 
   const content =
@@ -68,7 +76,9 @@ export default function OutputPanel({
       ? result?.stdout ?? ""
       : activeTab === "stderr"
         ? result?.stderr ?? ""
-        : result?.compilationOutput ?? "";
+        : activeTab === "compile"
+          ? result?.compilationOutput ?? ""
+          : ""; // stdin tab handled separately
 
   return (
     <div className="flex flex-col border-t border-gray-700 bg-gray-900">
@@ -78,7 +88,7 @@ export default function OutputPanel({
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => onTabChange(tab.id)}
               className={`px-3 py-1 text-xs font-medium rounded-t transition-colors ${
                 activeTab === tab.id
                   ? "bg-gray-900 text-white"
@@ -135,7 +145,7 @@ export default function OutputPanel({
       {/* Error banner */}
       {result?.didNotRun && activeTab !== "compile" && (
         <button
-          onClick={() => setActiveTab("compile")}
+          onClick={() => onTabChange("compile")}
           className="flex items-center gap-2 px-3 py-1.5 bg-red-900/60 border-b border-red-700 text-red-200 text-xs hover:bg-red-900/80 transition-colors cursor-pointer w-full text-left"
         >
           <span className="font-bold">✕ Compilation failed</span>
@@ -144,6 +154,28 @@ export default function OutputPanel({
       )}
 
       {/* Content */}
+      {activeTab === "stdin" ? (
+        <div className="flex-1 p-3 min-h-[100px] max-h-[220px] flex flex-col">
+          <div className="text-xs text-gray-400 mb-2 flex items-center justify-between">
+            <span>Provide input for <code className="text-gray-300">std::cin</code> / <code className="text-gray-300">scanf</code></span>
+            {stdin && (
+              <button
+                onClick={() => onStdinChange("")}
+                className="text-gray-500 hover:text-gray-300 text-xs px-1.5 py-0.5 rounded hover:bg-gray-700 transition-colors"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          <textarea
+            value={stdin}
+            onChange={(e) => onStdinChange(e.target.value)}
+            placeholder="Enter program input here (one value per line)...\nExample:\n42\nhello world"
+            className="flex-1 bg-gray-950 border border-gray-700 rounded p-2 text-sm font-mono text-gray-200 resize-none focus:outline-none focus:border-blue-500 placeholder-gray-600"
+            spellCheck={false}
+          />
+        </div>
+      ) : (
       <pre
         ref={scrollRef}
         className="flex-1 p-3 text-sm font-mono text-gray-200 overflow-auto min-h-[100px] max-h-[220px] whitespace-pre-wrap"
@@ -169,6 +201,7 @@ export default function OutputPanel({
           </span>
         )}
       </pre>
+      )}
     </div>
   );
 }

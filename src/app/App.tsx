@@ -40,6 +40,8 @@ export default function App() {
   const [runResult, setRunResult] = useState<RunResult | null>(null);
   const [showOutput, setShowOutput] = useState(false);
   const [optimizations, setOptimizations] = useState<OptimizationResult[] | null>(null);
+  const [stdin, setStdin] = useState("");
+  const [outputTab, setOutputTab] = useState<"stdout" | "stderr" | "compile" | "stdin">("stdout");
 
   // Sync settings target changes to appState so it gets persisted
   const handleSettingsChange = useCallback((newSettings: AnalysisSettings) => {
@@ -90,9 +92,10 @@ export default function App() {
   const handleRun = useCallback(async () => {
     setRunning(true);
     setShowOutput(true);
+    setOutputTab("stdout");
     setRunResult(null);
     try {
-      const result = await runCppCode(appState.code, appState.compilerId);
+      const result = await runCppCode(appState.code, appState.compilerId, stdin);
       setRunResult(result);
     } catch (err: unknown) {
       setRunResult({
@@ -105,7 +108,7 @@ export default function App() {
     } finally {
       setRunning(false);
     }
-  }, [appState.code, appState.compilerId]);
+  }, [appState.code, appState.compilerId, stdin]);
 
   const tabs: { id: Tab; label: string; active: boolean }[] = [
     {
@@ -142,11 +145,16 @@ export default function App() {
           theme={appState.themeId}
         />
       </div>
+      {/* Stdin input (always visible if panel is open or user wants to pre-fill) */}
       {showOutput && (
         <OutputPanel
           result={runResult}
           running={running}
           onClose={() => setShowOutput(false)}
+          stdin={stdin}
+          onStdinChange={setStdin}
+          activeTab={outputTab}
+          onTabChange={setOutputTab}
         />
       )}
     </>
@@ -264,6 +272,11 @@ export default function App() {
         onCompilerChange={(c) => setAppState({ compilerId: c })}
         themeId={appState.themeId}
         onThemeChange={(t) => setAppState({ themeId: t })}
+        onOpenStdin={() => {
+          setShowOutput(true);
+          setOutputTab("stdin");
+        }}
+        hasStdin={stdin.length > 0}
       />
 
       {/* Main Panes with SplitPane */}

@@ -18,6 +18,8 @@ interface ToolbarProps {
   onCompilerChange: (id: string) => void;
   themeId: string;
   onThemeChange: (id: string) => void;
+  onOpenStdin: () => void;
+  hasStdin: boolean;
 }
 
 const ANALYSIS_OPTIONS: { value: AnalysisType; label: string }[] = [
@@ -37,6 +39,8 @@ export default function Toolbar({
   onCompilerChange,
   themeId,
   onThemeChange,
+  onOpenStdin,
+  hasStdin,
 }: ToolbarProps) {
   const toggleType = (t: AnalysisType) => {
     const types = settings.analysisTypes.includes(t)
@@ -130,6 +134,21 @@ export default function Toolbar({
 
       {/* Action buttons */}
       <div className="ml-auto flex items-center gap-2">
+        {/* Input button */}
+        <button
+          onClick={onOpenStdin}
+          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors flex items-center gap-1.5 border ${
+            hasStdin
+              ? "bg-cyan-900/40 border-cyan-600 text-cyan-300 hover:bg-cyan-900/60"
+              : "bg-gray-700 border-gray-600 text-gray-400 hover:bg-gray-600 hover:text-gray-200"
+          }`}
+          title="Set program input (stdin)"
+        >
+          <span className="text-xs">⌨</span>
+          Input
+          {hasStdin && <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />}
+        </button>
+
         {/* Run button */}
         <button
           onClick={onRun}
