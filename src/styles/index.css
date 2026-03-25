@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family:
+    "Roboto",
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* Byte grid cell animations */
+.byte-cell {
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.byte-cell:hover {
+  transform: scale(1.15);
+  z-index: 10;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+/* Padding stripes pattern */
+.padding-stripes {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 3px,
+    rgba(239, 68, 68, 0.3) 3px,
+    rgba(239, 68, 68, 0.3) 6px
+  );
+}
+
+/* Custom scrollbar class */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* ── Monaco editor: error / warning line highlights ── */
+.cppviz-error-line {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border-left: 3px solid #ef4444 !important;
+}
+.cppviz-warning-line {
+  background: rgba(234, 179, 8, 0.10) !important;
+  border-left: 3px solid #eab308 !important;
+}
+
+/* Inline diagnostic text after the line */
+.cppviz-error-inline {
+  color: #f87171 !important;
+  font-style: italic;
+  font-size: 12px;
+  opacity: 0.85;
+  padding-left: 8px;
+}
+.cppviz-warning-inline {
+  color: #facc15 !important;
+  font-style: italic;
+  font-size: 12px;
+  opacity: 0.80;
+  padding-left: 8px;
+}
