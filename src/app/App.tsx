@@ -108,7 +108,7 @@ export default function App() {
     } finally {
       setRunning(false);
     }
-  }, [appState.code, appState.compilerId]);
+  }, [appState.code, appState.compilerId, stdin]);
 
   const tabs: { id: Tab; label: string; active: boolean }[] = [
     {
