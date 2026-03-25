@@ -40,6 +40,7 @@ export default function App() {
   const [runResult, setRunResult] = useState<RunResult | null>(null);
   const [showOutput, setShowOutput] = useState(false);
   const [optimizations, setOptimizations] = useState<OptimizationResult[] | null>(null);
+  const [stdin, setStdin] = useState("");
 
   // Sync settings target changes to appState so it gets persisted
   const handleSettingsChange = useCallback((newSettings: AnalysisSettings) => {
@@ -92,7 +93,7 @@ export default function App() {
     setShowOutput(true);
     setRunResult(null);
     try {
-      const result = await runCppCode(appState.code, appState.compilerId);
+      const result = await runCppCode(appState.code, appState.compilerId, stdin);
       setRunResult(result);
     } catch (err: unknown) {
       setRunResult({
@@ -147,6 +148,8 @@ export default function App() {
           result={runResult}
           running={running}
           onClose={() => setShowOutput(false)}
+          stdin={stdin}
+          onStdinChange={setStdin}
         />
       )}
     </>

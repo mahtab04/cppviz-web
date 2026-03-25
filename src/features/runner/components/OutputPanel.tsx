@@ -5,6 +5,8 @@ interface OutputPanelProps {
   result: RunResult | null;
   running: boolean;
   onClose: () => void;
+  stdin: string;
+  onStdinChange: (value: string) => void;
 }
 
 /** Classify a single compiler-output line. */
@@ -20,8 +22,10 @@ export default function OutputPanel({
   result,
   running,
   onClose,
+  stdin,
+  onStdinChange,
 }: OutputPanelProps) {
-  const [activeTab, setActiveTab] = useState<"stdout" | "stderr" | "compile">(
+  const [activeTab, setActiveTab] = useState<"stdout" | "stderr" | "compile" | "stdin">(
     "stdout"
   );
   const scrollRef = useRef<HTMLPreElement>(null);
@@ -61,6 +65,11 @@ export default function OutputPanel({
       label: "Compiler",
       hasContent: !!result?.compilationOutput,
     },
+    {
+      id: "stdin" as const,
+      label: "Input",
+      hasContent: stdin.length > 0,
+    },
   ];
 
   const content =
@@ -68,7 +77,9 @@ export default function OutputPanel({
       ? result?.stdout ?? ""
       : activeTab === "stderr"
         ? result?.stderr ?? ""
-        : result?.compilationOutput ?? "";
+        : activeTab === "compile"
+          ? result?.compilationOutput ?? ""
+          : ""; // stdin tab handled separately
 
   return (
     <div className="flex flex-col border-t border-gray-700 bg-gray-900">
@@ -144,6 +155,28 @@ export default function OutputPanel({
       )}
 
       {/* Content */}
+      {activeTab === "stdin" ? (
+        <div className="flex-1 p-3 min-h-[100px] max-h-[220px] flex flex-col">
+          <div className="text-xs text-gray-400 mb-2 flex items-center justify-between">
+            <span>Provide input for <code className="text-gray-300">std::cin</code> / <code className="text-gray-300">scanf</code></span>
+            {stdin && (
+              <button
+                onClick={() => onStdinChange("")}
+                className="text-gray-500 hover:text-gray-300 text-xs px-1.5 py-0.5 rounded hover:bg-gray-700 transition-colors"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          <textarea
+            value={stdin}
+            onChange={(e) => onStdinChange(e.target.value)}
+            placeholder="Enter program input here (one value per line)...\nExample:\n42\nhello world"
+            className="flex-1 bg-gray-950 border border-gray-700 rounded p-2 text-sm font-mono text-gray-200 resize-none focus:outline-none focus:border-blue-500 placeholder-gray-600"
+            spellCheck={false}
+          />
+        </div>
+      ) : (
       <pre
         ref={scrollRef}
         className="flex-1 p-3 text-sm font-mono text-gray-200 overflow-auto min-h-[100px] max-h-[220px] whitespace-pre-wrap"
@@ -169,6 +202,7 @@ export default function OutputPanel({
           </span>
         )}
       </pre>
+      )}
     </div>
   );
 }
