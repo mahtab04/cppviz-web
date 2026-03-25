@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import type { RunResult } from "../services/godbolt";
 
 interface OutputPanelProps {
@@ -7,6 +7,8 @@ interface OutputPanelProps {
   onClose: () => void;
   stdin: string;
   onStdinChange: (value: string) => void;
+  activeTab: "stdout" | "stderr" | "compile" | "stdin";
+  onTabChange: (tab: "stdout" | "stderr" | "compile" | "stdin") => void;
 }
 
 /** Classify a single compiler-output line. */
@@ -24,10 +26,9 @@ export default function OutputPanel({
   onClose,
   stdin,
   onStdinChange,
+  activeTab,
+  onTabChange,
 }: OutputPanelProps) {
-  const [activeTab, setActiveTab] = useState<"stdout" | "stderr" | "compile" | "stdin">(
-    "stdout"
-  );
   const scrollRef = useRef<HTMLPreElement>(null);
 
   useEffect(() => {
@@ -40,14 +41,12 @@ export default function OutputPanel({
   useEffect(() => {
     if (result) {
       if (result.didNotRun) {
-        setActiveTab("compile");
+        onTabChange("compile");
       } else if (!result.stdout && result.stderr) {
-        setActiveTab("stderr");
-      } else {
-        setActiveTab("stdout");
+        onTabChange("stderr");
       }
     }
-  }, [result]);
+  }, [result, onTabChange]);
 
   /** Count errors / warnings in compiler output for badge. */
   const diagnosticCounts = useMemo(() => {
@@ -89,7 +88,7 @@ export default function OutputPanel({
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => onTabChange(tab.id)}
               className={`px-3 py-1 text-xs font-medium rounded-t transition-colors ${
                 activeTab === tab.id
                   ? "bg-gray-900 text-white"
@@ -146,7 +145,7 @@ export default function OutputPanel({
       {/* Error banner */}
       {result?.didNotRun && activeTab !== "compile" && (
         <button
-          onClick={() => setActiveTab("compile")}
+          onClick={() => onTabChange("compile")}
           className="flex items-center gap-2 px-3 py-1.5 bg-red-900/60 border-b border-red-700 text-red-200 text-xs hover:bg-red-900/80 transition-colors cursor-pointer w-full text-left"
         >
           <span className="font-bold">✕ Compilation failed</span>
